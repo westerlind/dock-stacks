@@ -685,6 +685,7 @@ class StackPopup extends St.Widget {
             const destY = originY - ((index + 1) * (64 + gap));
 
             const idx = index;
+            itemContainer.set_opacity(0);
             this._fanContainer.add_child(itemContainer);
 
             GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
