@@ -1483,7 +1483,7 @@ class StackIconContainer extends St.Widget {
         const file = Gio.File.new_for_path(this.folderPath);
         const items = [];
         try {
-            const enumerator = file.enumerate_children('standard::name,standard::icon,standard::type,standard::content-type,thumbnail::path,time::modified', Gio.FileQueryInfoFlags.NONE, null);
+            const enumerator = file.enumerate_children('standard::name,standard::is-hidden,standard::icon,standard::type,standard::content-type,thumbnail::path,time::modified', Gio.FileQueryInfoFlags.NONE, null);
             let info;
             let count = 0;
             // Cap at 500 to prevent pathological memory bloat
