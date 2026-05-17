@@ -1402,7 +1402,7 @@ class StackIconContainer extends St.Widget {
         return { isOpen: this._popup ? this._popup._isOpen : false };
     }
 
-    constructor(folderPath, settings) {
+    constructor(folderPath, settings, iconSize) {
         super({
             layout_manager: new Clutter.BinLayout(),
             style_class: 'dash-item-container',
@@ -1433,7 +1433,7 @@ class StackIconContainer extends St.Widget {
 
         this.icon = new St.Icon({
             gicon: new Gio.ThemedIcon({ name: 'folder' }),
-            icon_size: 48
+            icon_size: iconSize || 48
         });
 
         this._iconContainer.add_child(this.icon);
@@ -1635,6 +1635,20 @@ export default class DockStacksExtension extends Extension {
         this._dashBox = null;
         this._enableRetryId = null;
 
+        this._dockSettings = null;
+        try {
+            // Read the Dash to Dock icon size setting
+            const schemaId = 'org.gnome.shell.extensions.dash-to-dock';
+            const schemaSource = Gio.SettingsSchemaSource.get_default();
+            if (schemaSource.lookup(schemaId, true)) {
+                this._dockSettings = new Gio.Settings({ schema_id: schemaId });
+                this._dockSettingsId = this._dockSettings.connect('changed::dash-max-icon-size', () => this._syncStacks());
+                this._dockSettingsFixedId = this._dockSettings.connect('changed::icon-size-fixed', () => this._syncStacks());
+            }
+        } catch (e) {
+            console.error('[Dock Stacks] Failed to initialize Ubuntu Dock settings:', e);
+        }
+
         // Wait for D2D and other dock extensions to finish layout init
         this._enableRetryId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 1500, () => {
             this._enableRetryId = null;
@@ -1649,6 +1663,7 @@ export default class DockStacksExtension extends Extension {
                 }
 
                 if (this._dashBox) {
+                    this._setupDashListener();
                     this._syncStacks();
                     return false;
                 }
@@ -1716,10 +1731,28 @@ export default class DockStacksExtension extends Extension {
                 this._dashBox;
         } catch (_) {}
 
+        let iconSize = 48;
+        if (this._dockSettings) {
+            try {
+                iconSize = this._dockSettings.get_int('dash-max-icon-size');
+            } catch (e) {}
+        }
+
+        // Try to get actual size from dash if available
+        try {
+            const dash = Main.overview.dash;
+            if (dash) {
+                if (typeof dash.iconSize === 'number')
+                    iconSize = dash.iconSize;
+                else if (dash.dash && typeof dash.dash.iconSize === 'number')
+                    iconSize = dash.dash.iconSize;
+            }
+        } catch (e) {}
+
         const folders = this._settings.get_strv('configured-folders');
         for (const folder of folders) {
             try {
-                const stackIcon = new StackIconContainer(folder, this._settings);
+                const stackIcon = new StackIconContainer(folder, this._settings, iconSize);
                 this._stackIcons.push(stackIcon);
                 if (this._dashBox) {
                     this._dashBox.add_child(stackIcon);
@@ -1728,6 +1761,18 @@ export default class DockStacksExtension extends Extension {
                 console.error(`[Dock Stacks] Failed to add stack for ${folder}:`, e);
             }
         }
+    }
+
+    _setupDashListener() {
+        if (this._dashIconSizeChangedId) return;
+
+        try {
+            const dash = Main.overview.dash;
+            if (dash && dash.connect) {
+                // Dash to Dock emits icon-size-changed
+                this._dashIconSizeChangedId = dash.connect('icon-size-changed', () => this._syncStacks());
+            }
+        } catch (e) {}
     }
 
     _cleanStacks() {
@@ -1746,6 +1791,23 @@ export default class DockStacksExtension extends Extension {
     }
 
     disable() {
+        if (this._dashIconSizeChangedId) {
+            try {
+                const dash = Main.overview.dash;
+                if (dash && dash.disconnect)
+                    dash.disconnect(this._dashIconSizeChangedId);
+            } catch (e) {}
+            this._dashIconSizeChangedId = null;
+        }
+
+        if (this._dockSettings) {
+            if (this._dockSettingsId)
+                this._dockSettings.disconnect(this._dockSettingsId);
+            if (this._dockSettingsFixedId)
+                this._dockSettings.disconnect(this._dockSettingsFixedId);
+            this._dockSettings = null;
+        }
+
         if (this._enableRetryId) {
             GLib.source_remove(this._enableRetryId);
             this._enableRetryId = null;
