@@ -1432,8 +1432,36 @@ class StackIconContainer extends St.Widget {
             style_class: 'overview-icon'
         });
 
+        let iconName = 'folder';
+        try {
+            const folderFile = Gio.File.new_for_path(this.folderPath);
+            const specialDirs = [
+                [GLib.UserDirectory.DIRECTORY_DOWNLOAD, 'folder-download'],
+                [GLib.UserDirectory.DIRECTORY_DOCUMENTS, 'folder-documents'],
+                [GLib.UserDirectory.DIRECTORY_MUSIC, 'folder-music'],
+                [GLib.UserDirectory.DIRECTORY_PICTURES, 'folder-pictures'],
+                [GLib.UserDirectory.DIRECTORY_VIDEOS, 'folder-videos'],
+                [GLib.UserDirectory.DIRECTORY_DESKTOP, 'user-desktop'],
+                [GLib.UserDirectory.DIRECTORY_TEMPLATES, 'folder-templates'],
+                [GLib.UserDirectory.DIRECTORY_PUBLIC_SHARE, 'folder-publicshare'],
+            ];
+
+            for (const [type, icon] of specialDirs) {
+                const path = GLib.get_user_special_dir(type);
+                if (path && folderFile.equal(Gio.File.new_for_path(path))) {
+                    iconName = icon;
+                    break;
+                }
+            }
+
+            if (iconName === 'folder' && folderFile.equal(Gio.File.new_for_path(GLib.get_home_dir())))
+                iconName = 'user-home';
+        } catch (e) {
+            console.error(`[Dock Stacks] Error determining folder icon: ${e}`);
+        }
+
         this.icon = new St.Icon({
-            gicon: new Gio.ThemedIcon({ name: 'folder' }),
+            gicon: new Gio.ThemedIcon({ name: iconName }),
             icon_size: iconSize || 48
         });
 
