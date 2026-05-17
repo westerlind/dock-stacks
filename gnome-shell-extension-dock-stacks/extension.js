@@ -282,6 +282,27 @@ function _showInFiles(uri) {
 }
 
 /**
+ * Move a file to trash.
+ */
+function _moveToTrash(uri, onComplete) {
+    try {
+        const file = Gio.File.new_for_uri(uri);
+        file.trash_async(GLib.PRIORITY_DEFAULT, null, (sourceFile, res) => {
+            try {
+                sourceFile.trash_finish(res);
+                if (onComplete) onComplete(true);
+            } catch (e) {
+                console.error(`[Dock Stacks] Failed to move to trash: ${e}`);
+                if (onComplete) onComplete(false);
+            }
+        });
+    } catch (e) {
+        console.error(`[Dock Stacks] Failed to move to trash: ${e}`);
+        if (onComplete) onComplete(false);
+    }
+}
+
+/**
  * Show a context menu for a stack item.
  */
 function _showContextMenu(actor, data, popup, x, y) {
@@ -310,6 +331,13 @@ function _showContextMenu(actor, data, popup, x, y) {
     menu.addAction('Show in Files', () => {
         popup.close();
         _showInFiles(data.uri);
+    });
+
+    menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+
+    menu.addAction('Move to Trash', () => {
+        popup.close();
+        _moveToTrash(data.uri);
     });
 
     popup._menuManager.addMenu(menu);
