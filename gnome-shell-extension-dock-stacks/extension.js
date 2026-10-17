@@ -651,7 +651,7 @@ class StackPopup extends St.Widget {
             });
 
             const itemBox = new St.BoxLayout({
-                vertical: false,
+                orientation: Clutter.Orientation.HORIZONTAL,
                 y_align: Clutter.ActorAlign.CENTER
             });
             itemBox.add_child(labelWidget);
@@ -930,7 +930,7 @@ class GridPopup extends St.Widget {
         });
 
         this._searchWrapper = new St.BoxLayout({
-            vertical: true,
+            orientation: Clutter.Orientation.VERTICAL,
             x_expand: true,
             y_expand: true,
             x_align: Clutter.ActorAlign.FILL,
@@ -959,7 +959,7 @@ class GridPopup extends St.Widget {
 
         // Wrapper to satisfy St.Scrollable interface in GNOME 47+
         this._scrollWrapper = new St.BoxLayout({
-            vertical: true,
+            orientation: Clutter.Orientation.VERTICAL,
             x_expand: false,
             y_expand: false
         });
@@ -1112,7 +1112,7 @@ class GridPopup extends St.Widget {
                     iconWidget.set_style('border-radius: 4px;');
             }
 
-            const nameBox = new St.BoxLayout({ vertical: true });
+            const nameBox = new St.BoxLayout({ orientation: Clutter.Orientation.VERTICAL });
 
             const labelWidget = new St.Label({
                 text: data.name,
@@ -1125,7 +1125,7 @@ class GridPopup extends St.Widget {
             labelWidget.clutter_text.line_wrap_mode = Pango.WrapMode.WORD_CHAR;
 
             const iconBox = new St.BoxLayout({
-                vertical: true,
+                orientation: Clutter.Orientation.VERTICAL,
                 x_align: Clutter.ActorAlign.CENTER,
                 y_align: Clutter.ActorAlign.START
             });
