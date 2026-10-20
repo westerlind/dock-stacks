@@ -633,7 +633,7 @@ class StackPopup extends St.Widget {
                     style_class: 'stack-item-icon',
                     y_align: Clutter.ActorAlign.CENTER
                 });
-                iconWidget.set_style('border: 3px solid #ffffff; border-radius: 4px; box-shadow: 0px 1px 5px rgba(0, 0, 0, 0.15);');
+                iconWidget.set_style('border: 3px solid #ffffff; border-radius: 4px; box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.10);');
             } else {
                 iconWidget = new St.Icon({
                     gicon: data.icon,
@@ -643,9 +643,9 @@ class StackPopup extends St.Widget {
                 });
 
                 if (data.isAction)
-                    iconWidget.set_style('icon-shadow: 0px 2px 8px rgba(0, 0, 0, 0.30)');
+                    iconWidget.set_style('icon-shadow: 0px 2px 3px rgba(0, 0, 0, 0.15)');
                 else
-                    iconWidget.set_style('icon-shadow: 0px 2px 8px rgba(0, 0, 0, 0.30); border-radius: 4px;');
+                    iconWidget.set_style('icon-shadow: 0px 2px 3px rgba(0, 0, 0, 0.15); border-radius: 4px;');
             }
 
             const labelWidget = new St.Label({
